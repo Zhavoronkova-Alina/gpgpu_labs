@@ -78,7 +78,7 @@ double processMultiplyMatrixOnGPU(double* A, double* B, double* res, size_t N) {
 
 	//set kernel launch configuration
 	dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
-	dim3 blocks((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (N + BLOCK_SIZE - 1) / BLOCK_SIZE);
+	dim3 blocks((N + threads.x - 1) / threads.x, (N + threads.y - 1) / threads.y);
 
 	//create cuda event handles
 	cudaEventCreate(&start);
@@ -107,6 +107,15 @@ double processMultiplyMatrixOnGPU(double* A, double* B, double* res, size_t N) {
 	return gpuTime / 1000.0f;
 }
 
+double getMaxMatrixDifference(double* A, double* B, size_t N) {
+	double res = 0;
+
+	for (size_t i = 0; i < N * N; ++i)
+		res = std::max(res, std::fabs(A[i] - B[i]));
+
+	return res;
+}
+
 
 int main(int argc, char* argv[]) {
 	double const minValue = -10;
@@ -121,10 +130,13 @@ int main(int argc, char* argv[]) {
 		double cpuResTime = processMultiplyMatrixOnCPU(A, B, cpuResMatrix, N);
 		double gpuResTime = processMultiplyMatrixOnGPU(A, B, gpuResMatrix, N);
 
+		double maxDiff = getMaxMatrixDifference(cpuResMatrix, gpuResMatrix, N);
+
 		std::cout << "-------------------------------------------------" << std::endl;
 		std::cout << "Matrix size N = " << N << std::endl;
 		std::cout << "Matrix multiplication time on CPU: " << cpuResTime << std::endl;
 		std::cout << "Matrix multiplication time on GPU: " << gpuResTime << std::endl;
+		std::cout << "Maximum matrix difference: " << maxDiff << std::endl;
 
 		delete[] A;
 		delete[] B;
