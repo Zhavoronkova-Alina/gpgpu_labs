@@ -100,6 +100,10 @@ double processMultiplyMatrixOnGPU(double* A, double* B, double* res, size_t N) {
 	cudaEventDestroy(start);
 	cudaEventDestroy(end);
 
+	cudaFree(ADev);
+	cudaFree(BDev);
+	cudaFree(resDev);
+
 	return gpuTime / 1000.0f;
 }
 
