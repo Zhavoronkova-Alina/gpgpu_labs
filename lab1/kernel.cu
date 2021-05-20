@@ -1,4 +1,9 @@
-﻿
+﻿/*
+* Calculate matrix multiplication on CPU and GPU
+* @file kernel.cu
+* @author Alina Zhavoronkova
+*/
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -10,6 +15,13 @@
 static const size_t BLOCK_SIZE = 32;
 static const size_t MATRIX_N[4] = { 500, 1000, 1500, 2000 };
 
+/*
+* Fill matrix with uniform distributed random numbers from minValue to maxValue
+* @param N - Size of matrix (square matrix NxN)
+* @param minValue - The lower bound of the numbers 
+* @param maxValue - The upper bound of the numbers 
+* @return The filled matrix
+*/
 double* fillRandomMatrix(size_t const N, double const minValue, double const maxValue) {
 	size_t length = N * N;
 	double* res = new double[length];
@@ -25,6 +37,13 @@ double* fillRandomMatrix(size_t const N, double const minValue, double const max
 	return res;
 }
 
+/*
+* Multiply matrices using CPU
+* @param A - The first matrix
+* @param B - The second matrix
+* @param res - The matrix, where result of multiplication is written
+* @param N - Size of matrices (square matrix NxN)
+*/
 void multiplyMatrixOnCPU(double* A, double* B, double* res, size_t N) {
 	for (size_t i = 0; i < N; ++i) {
 		for (size_t j = 0; j < N; ++j) {
@@ -37,6 +56,13 @@ void multiplyMatrixOnCPU(double* A, double* B, double* res, size_t N) {
 	}
 }
 
+/*
+* Kernel used for matrix multiplication using GPU
+* @param A - The first matrix
+* @param B - The second matrix
+* @param res - The matrix, where result of multiplication is written
+* @param N - Size of matrices (square matrix NxN)
+*/
 __global__ void multiplyMatrixKernel(double* A, double* B, double* res, size_t N) {
 	size_t const i = blockDim.y * blockIdx.y + threadIdx.y;
 	size_t const j = blockDim.x * blockIdx.x + threadIdx.x;
@@ -51,6 +77,14 @@ __global__ void multiplyMatrixKernel(double* A, double* B, double* res, size_t N
 	}
 }
 
+/*
+* Multiplies matrices on CPU and counts the execution time
+* @param A - The first matrix
+* @param B - The second matrix
+* @param res - The matrix, where result of multiplication is written
+* @param N - Size of matrices (square matrix NxN)
+* @return Time spent on matrix multiplication
+*/
 double processMultiplyMatrixOnCPU(double* A, double* B, double* res, size_t N) {
 	LARGE_INTEGER start, end, freq;
 	QueryPerformanceFrequency(&freq);
@@ -62,6 +96,14 @@ double processMultiplyMatrixOnCPU(double* A, double* B, double* res, size_t N) {
 	return static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
 }
 
+/*
+* Multiplies matrices on GPU and counts the execution time
+* @param A - The first matrix
+* @param B - The second matrix
+* @param res - The matrix, where result of multiplication is written
+* @param N - Size of matrices (square matrix NxN)
+* @return Time spent on matrix multiplication
+*/
 double processMultiplyMatrixOnGPU(double* A, double* B, double* res, size_t N) {
 	float gpuTime = 0.0f;
 	size_t size = N * N * sizeof(double);
@@ -107,6 +149,13 @@ double processMultiplyMatrixOnGPU(double* A, double* B, double* res, size_t N) {
 	return gpuTime / 1000.0f;
 }
 
+/*
+* Calculate the maximum difference between the corresponding elements of two matrices
+* @param A - The first matrix
+* @param B - The second matrix
+* @param N - Size of matrices (square matrix NxN)
+* @return Maximum difference between the corresponding elements of two matrices
+*/
 double getMaxMatrixDifference(double* A, double* B, size_t N) {
 	double res = 0;
 
@@ -115,7 +164,6 @@ double getMaxMatrixDifference(double* A, double* B, size_t N) {
 
 	return res;
 }
-
 
 int main(int argc, char* argv[]) {
 	double const minValue = -10;
