@@ -1,0 +1,2 @@
+D:\alina\Documents\GitHub\gpgpu_labs\lab2\x64\Debug\lab2.exe
+D:\alina\Documents\GitHub\gpgpu_labs\lab2\x64\Debug\lab2.pdb
